@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<link rel="stylesheet" href="./public/css/style.css">
+</head>
+<body>
+	<div class="wrapper">
+		<div class="newPlayer__container">
+			<input type="text" placeholder="name" class="newPlayer__input">
+			<button class="newPlayer__button">
+				sadasda
+			</button>
+		</div>
+		<div class="room__container">
+			<table class="board__container">
+				<tr>
+					<td class="board__square" x="0" y="0"></td>
+					<td class="board__square" x="1" y="0"></td>
+					<td class="board__square" x="2" y="0"></td>
+				</tr>
+				<tr>
+					<td class="board__square" x="0" y="1"></td>
+					<td class="board__square" x="1" y="1"></td>
+					<td class="board__square" x="2" y="1"></td>
+				</tr>
+				<tr>
+					<td class="board__square" x="0" y="2"></td>
+					<td class="board__square" x="1" y="2"></td>
+					<td class="board__square" x="2" y="2"></td>
+				</tr>
+			</table>
+		</div>
+		<div class="status__container">Oczekiwanie na przeciwnika...</div>
+		<div class="messages__container"></div>
+	</div>
+	<script src="./public/js/socket.io.js"></script>
+	<script src="./public/js/main.js"></script>
+</body>
+</html>

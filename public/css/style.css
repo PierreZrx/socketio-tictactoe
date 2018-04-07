@@ -1,0 +1,102 @@
+@import url('https://fonts.googleapis.com/css?family=Saira');
+
+* {
+  box-sizing: border-box;
+  transition: .3s ease;
+}
+
+body {
+  padding: 0;
+  margin: 0;
+}
+
+.wrapper {
+  max-width: 900px;
+  margin: 50px auto 0 auto;
+}
+
+.newPlayer__input,
+.newPlayer__button {
+  font-family: 'Saira', sans-serif;
+  font-size: 1.4em;
+  padding: 10px;
+  background: #eee;
+  outline: 0;
+  border-bottom: 3px solid #ddd;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-radius: 3px;
+}
+
+.newPlayer__button {
+  background: #bbb;
+  border-bottom: 3px solid #999;
+  margin-left: 5px;
+  transition: all .3s ease;
+  cursor: pointer
+}
+
+.newPlayer__button:hover {
+  transform: translateY(4px);
+}
+
+.newPlayer__container {
+  display: flex;
+  justify-content: center;
+  margin-top: 50vh;
+  transform: translateY(-50%);
+}
+
+.messages__container {
+  font-family: 'Saira', sans-serif;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.messages__time {
+  font-size: 1em;
+  color: #999;
+}
+
+.messages__text {
+  font-size: 1.35em;
+}
+
+.messages__text, .messages__time {
+  vertical-align: middle;
+}
+
+.room__container {
+  visibility: hidden;
+  opacity: 0;
+}
+
+.board__container {
+  margin: 50px auto;
+  border-spacing: 5px;
+  border-collapse: separate;
+}
+
+.board__square {
+  height: 175px;
+  width: 175px;
+  background: #eee;
+  border-bottom: 3px solid #ddd;
+  border-radius: 3px;
+  transition: all .3s ease;
+  cursor: pointer;
+}
+
+.board__square:hover {
+  transform: scale(1.03);
+}
+
+.status__container {
+  visibility: hidden;
+  opacity: 0;
+  font-family: 'Saira', sans-serif;
+  font-size : 2em;
+  text-align: center;
+  margin-bottom: 30px;
+}
