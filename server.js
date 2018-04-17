@@ -19,10 +19,8 @@ class Room {
   constructor() {
     let id = 0;
     for (let i = 0; i < ROOM_LIST.length; i++) {
-      let room = ROOM_LIST[i];
       id += 1;
-      if (room.id == id) break;
-      else continue;
+      if (ROOM_LIST[i].id !== id) break;
     }
     this.id = id;
     this.players = [];
@@ -60,16 +58,16 @@ class Room {
     }
   }
   changeTurn() {
-    if (this.checkWin() == true) {
+    if (this.checkWin() === true) {
       io.to(this.id).emit('status', 'Wygrał gracz: ' + this.players[this.turn].name + '.');
       this.turn = null;
       this.deleteRoom();
     } else {
-      if (this.turn == null) {
+      if (this.turn === null) {
         this.turn = Math.round(Math.random());
-      } else if (this.turn == 1) {
+      } else if (this.turn === 1) {
         this.turn = 0;
-      } else if (this.turn == 0) {
+      } else if (this.turn === 0) {
         this.turn = 1;
       }
       io.to(this.id).emit('status', 'Tura gracza ' + this.players[this.turn].name + '.');
@@ -81,14 +79,14 @@ class Room {
   }
   checkWin() {
     let b = this.board;
-    if ((b[0][0] == b[0][1] && b[0][1] == b[0][2] && b[0][2] != null) ||
-      (b[1][0] == b[1][1] && b[1][1] == b[1][2] && b[0][2] != null) ||
-      (b[2][0] == b[2][1] && b[2][1] == b[2][2] && b[2][2] != null) ||
-      (b[0][0] == b[1][0] && b[1][0] == b[2][0] && b[2][0] != null) ||
-      (b[0][1] == b[1][1] && b[1][1] == b[2][1] && b[2][1] != null) ||
-      (b[0][2] == b[1][2] && b[1][2] == b[2][2] && b[2][2] != null) ||
-      (b[0][0] == b[1][1] && b[1][1] == b[2][2] && b[2][2] != null) ||
-      (b[0][2] == b[1][1] && b[1][1] == b[2][0] && b[2][0] != null)) {
+    if ((b[0][0] === b[0][1] && b[0][1] === b[0][2] && b[0][2] !== null) ||
+      (b[1][0] === b[1][1] && b[1][1] === b[1][2] && b[0][2] !== null) ||
+      (b[2][0] === b[2][1] && b[2][1] === b[2][2] && b[2][2] !== null) ||
+      (b[0][0] === b[1][0] && b[1][0] === b[2][0] && b[2][0] !== null) ||
+      (b[0][1] === b[1][1] && b[1][1] === b[2][1] && b[2][1] !== null) ||
+      (b[0][2] === b[1][2] && b[1][2] === b[2][2] && b[2][2] !== null) ||
+      (b[0][0] === b[1][1] && b[1][1] === b[2][2] && b[2][2] !== null) ||
+      (b[0][2] === b[1][1] && b[1][1] === b[2][0] && b[2][0] !== null)) {
         return true;
       } else {
         return false;
@@ -104,7 +102,8 @@ class Player {
     PLAYER_LIST.push(this);
   }
   distribute() {
-    const room = ROOM_LIST.length > 0 ? ROOM_LIST.find(room => room.players.length === 1) : new Room();
+    const room = ROOM_LIST.find(room => room.players.length === 1) ? ROOM_LIST.find(room => room.players.length === 1) : new Room();
+    console.log(room.id);
     this.room = room.id;
     this.socket.join(room.id);
     room.players.push(this);
@@ -112,14 +111,14 @@ class Player {
     room.checkPlayers();
   }
   deletePlayer() {
-    const that = this;
-
     const pIndex = PLAYER_LIST.findIndex(player => player.id === that.id);
-    const room = ROOM_LIST.find(room => room.id === that.room);
-    const pIndexInRoom = room.players.findIndex(player => player.id === that.id);
     PLAYER_LIST.splice(pIndex, 1);
-    room.players.splice(pIndexInRoom, 1);
-    room.players.length === 0 ? room.deleteRoom() : 1;
+    const room = ROOM_LIST.find(room => room.id === that.room);
+    if (typeof room !== 'undefined') {
+      const pIndexInRoom = room.players.findIndex(player => player.id === that.id);
+      room.players.splice(pIndexInRoom, 1);
+      room.players.length === 0 ? room.deleteRoom() : 1;
+    }
   }
 }
 
@@ -132,11 +131,11 @@ io.on('connection', (socket) => {
   socket.on('tick', (res) => {
     const player = PLAYER_LIST.find(player => player.id === socket.id);
     const room = ROOM_LIST.find(room => room.id === player.room);
-    room.tick(player.id ,res.x, res.y);
+    if (typeof room !== 'undefined') room.tick(player.id, res.x, res.y);
   });
 
   socket.on('disconnect', (res) => {
     const player = PLAYER_LIST.find(player => player.id === socket.id);
-    player ? player.deletePlayer() : 1;
+    if (typeof room !== 'undefined') player.deletePlayer();
   })
 });
