@@ -49,13 +49,15 @@ class Room {
     this.players[this.turn].socket.emit('message', 'Rozpoczynasz grę!');
   }
   tick(id, x, y) {
+    console.log('id', id, 'x', x, 'y', y);
     if (id === this.players[this.turn].id && this.board[y][x] === null) {
-      this.board[y][x] = this.turn;
+      this.board[y][x] = this.turn.toString();
       this.turn === 0
         ? io.to(this.id).emit('draw', {type: 'x', cords: {x: x, y: y}})
         : io.to(this.id).emit('draw', {type: 'o', cords: {x: x, y: y}});
       this.changeTurn();
     }
+    console.log(this.board);
   }
   changeTurn() {
     if (this.checkWin() === true) {
@@ -79,14 +81,14 @@ class Room {
   }
   checkWin() {
     let b = this.board;
-    if ((b[0][0] === b[0][1] && b[0][1] === b[0][2] && b[0][2] !== null) ||
-      (b[1][0] === b[1][1] && b[1][1] === b[1][2] && b[0][2] !== null) ||
-      (b[2][0] === b[2][1] && b[2][1] === b[2][2] && b[2][2] !== null) ||
-      (b[0][0] === b[1][0] && b[1][0] === b[2][0] && b[2][0] !== null) ||
-      (b[0][1] === b[1][1] && b[1][1] === b[2][1] && b[2][1] !== null) ||
-      (b[0][2] === b[1][2] && b[1][2] === b[2][2] && b[2][2] !== null) ||
-      (b[0][0] === b[1][1] && b[1][1] === b[2][2] && b[2][2] !== null) ||
-      (b[0][2] === b[1][1] && b[1][1] === b[2][0] && b[2][0] !== null)) {
+    if ((b[0][0] === b[0][1] && b[0][1] === b[0][2] && b[0][2] !== null && b[0][0] !== null && b[0][1] !== null) ||
+      (b[1][0] === b[1][1] && b[1][1] === b[1][2] && b[0][2] !== null && b[1][1] !== null && b[1][2] !== null) ||
+      (b[2][0] === b[2][1] && b[2][1] === b[2][2] && b[2][2] !== null && b[2][0] !== null && b[2][1] !== null) ||
+      (b[0][0] === b[1][0] && b[1][0] === b[2][0] && b[2][0] !== null && b[0][0] !== null && b[1][0] !== null) ||
+      (b[0][1] === b[1][1] && b[1][1] === b[2][1] && b[2][1] !== null && b[0][1] !== null && b[1][1] !== null) ||
+      (b[0][2] === b[1][2] && b[1][2] === b[2][2] && b[2][2] !== null && b[1][2] !== null && b[0][2] !== null) ||
+      (b[0][0] === b[1][1] && b[1][1] === b[2][2] && b[2][2] !== null && b[0][0] !== null && b[1][1] !== null) ||
+      (b[0][2] === b[1][1] && b[1][1] === b[2][0] && b[2][0] !== null && b[0][2] !== null && b[1][1] !== null)) {
         return true;
       } else {
         return false;
@@ -103,7 +105,6 @@ class Player {
   }
   distribute() {
     const room = ROOM_LIST.find(room => room.players.length === 1) ? ROOM_LIST.find(room => room.players.length === 1) : new Room();
-    console.log(room.id);
     this.room = room.id;
     this.socket.join(room.id);
     room.players.push(this);
