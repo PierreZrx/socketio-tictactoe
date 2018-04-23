@@ -38,7 +38,7 @@ class Room {
     } else if (this.players.length === 0) {
       this.deleteRoom();
     } else {
-      this.board = [ [null,null,null], [null,null,null], [null,null,null]];
+      this.board = [[null,null,null], [null,null,null], [null,null,null]];
       this.players[0].socket.emit('message', 'Oczekiwanie na przeciwnika...');
     }
   }
@@ -47,24 +47,27 @@ class Room {
     this.players[0].socket.emit('message', 'Znaleziono przeciwnika! Jest nim ' + this.players[1].name + '.');
     this.players[1].socket.emit('message', 'Znaleziono przeciwnika! Jest nim ' + this.players[0].name + '.');
     this.players[this.turn].socket.emit('message', 'Rozpoczynasz grę!');
+    this.players[Math.abs(this.turn - 1)].socket.emit('message', 'Twój przeciwnik rozpoczyna grę!');
   }
   tick(id, x, y) {
-    console.log('id', id, 'x', x, 'y', y);
-    if (id === this.players[this.turn].id && this.board[y][x] === null) {
-      this.board[y][x] = this.turn.toString();
-      this.turn === 0
+    if (this.players.length > 0 && this.id >= 0) {
+      if (id === this.players[this.turn].id && this.board[y][x] === null) {
+        this.board[y][x] = this.turn.toString();
+        this.turn === 0
         ? io.to(this.id).emit('draw', {type: 'x', cords: {x: x, y: y}})
         : io.to(this.id).emit('draw', {type: 'o', cords: {x: x, y: y}});
-      this.changeTurn();
+        this.changeTurn();
+      }
     }
-    console.log(this.board);
   }
   changeTurn() {
+    const fields = [...this.board[0], ...this.board[1], ...this.board[2]];
+    const emptyFields = fields.some(item => item === null);
     if (this.checkWin() === true) {
       io.to(this.id).emit('status', 'Wygrał gracz: ' + this.players[this.turn].name + '.');
       this.turn = null;
       this.deleteRoom();
-    } else {
+    } else if (this.checkWin() === false && emptyFields === true) {
       if (this.turn === null) {
         this.turn = Math.round(Math.random());
       } else if (this.turn === 1) {
@@ -73,9 +76,16 @@ class Room {
         this.turn = 1;
       }
       io.to(this.id).emit('status', 'Tura gracza ' + this.players[this.turn].name + '.');
+    } else {
+      io.to(this.id).emit('status', 'Remis!');
     }
   }
   deleteRoom() {
+    PLAYER_LIST.forEach((player, key) => {
+      if (this.id === player.room) {
+        PLAYER_LIST[key].room = null;
+      }
+    });
     const rIndex = ROOM_LIST.find(room => room.id === this.id);
     ROOM_LIST.splice(rIndex, 1);
   }
@@ -104,7 +114,10 @@ class Player {
     PLAYER_LIST.push(this);
   }
   distribute() {
-    const room = ROOM_LIST.find(room => room.players.length === 1) ? ROOM_LIST.find(room => room.players.length === 1) : new Room();
+    const availableRoom = ROOM_LIST.find(room => room.players.length === 1);
+    const room = typeof availableRoom === 'undefined'
+      ? new Room()
+      : availableRoom;
     this.room = room.id;
     this.socket.join(room.id);
     room.players.push(this);
@@ -112,19 +125,21 @@ class Player {
     room.checkPlayers();
   }
   deletePlayer() {
-    const pIndex = PLAYER_LIST.findIndex(player => player.id === that.id);
-    PLAYER_LIST.splice(pIndex, 1);
-    const room = ROOM_LIST.find(room => room.id === that.room);
+    const room = ROOM_LIST.find(room => room.id === this.room);
     if (typeof room !== 'undefined') {
-      const pIndexInRoom = room.players.findIndex(player => player.id === that.id);
+      io.to(room.id).emit('status', 'Twój przeciwnik opuścił grę :(');
+      io.to(room.id).emit('message', 'Przeciwnik opuścił pokój.');
+      const pIndexInRoom = room.players.findIndex(player => player.id === this.id);
       room.players.splice(pIndexInRoom, 1);
-      room.players.length === 0 ? room.deleteRoom() : 1;
+      room.deleteRoom();
     }
+    const pIndex = PLAYER_LIST.findIndex(player => player.id === this.id);
+    PLAYER_LIST.splice(pIndex, 1);
   }
 }
 
 io.on('connection', (socket) => {
-  socket.on('newPlayer', function(res) {
+  socket.on('newPlayer', (res) => {
     let player = new Player(socket, res);
     player.distribute();
   });
@@ -137,6 +152,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', (res) => {
     const player = PLAYER_LIST.find(player => player.id === socket.id);
-    if (typeof room !== 'undefined') player.deletePlayer();
+    if (typeof player !== 'undefined') player.deletePlayer();
   })
 });
