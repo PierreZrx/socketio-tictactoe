@@ -1,21 +1,34 @@
-const socket = io('http://localhost:3000');
+const socket = io('http://192.168.1.16:3000');
+let clicked = false;
 
 document.querySelector('.newPlayer__button').onclick = () => {
-  let name = document.querySelector('.newPlayer__input').value;
-  socket.emit('newPlayer', name);
-  document.querySelector('.newPlayer__container').style.visibility = 'hidden';
-  document.querySelector('.newPlayer__container').style.opacity = '0';
+  if (clicked === false) {
+    let name = document.querySelector('.newPlayer__input').value;
+    socket.emit('newPlayer', name);
+    document.querySelector('.newPlayer__container').style.visibility = 'hidden';
+    document.querySelector('.newPlayer__container').style.opacity = '0';
 
-  setTimeout(function() {
-    document.querySelector('.newPlayer__container').style.display = 'none';
-    messages.style.visibility = 'visible';
-    messages.style.opacity = '1';
-    document.querySelector('.room__container').style.visibility = 'visible';
-    document.querySelector('.room__container').style.opacity = '1';
-    document.querySelector('.status__container').style.visibility = 'visible';
-    document.querySelector('.status__container').style.opacity = '1';
-  }, 300)
+    setTimeout(function() {
+      document.querySelector('.newPlayer__container').style.display = 'none';
+      messages.style.visibility = 'visible';
+      messages.style.opacity = '1';
+      document.querySelector('.room__container').style.visibility = 'visible';
+      document.querySelector('.room__container').style.opacity = '1';
+      document.querySelector('.status__container').style.visibility = 'visible';
+      document.querySelector('.status__container').style.opacity = '1';
+    }, 300)
+  }
+  clicked = true;
 }
+
+socket.on('button', (res) => {
+  document.querySelector('.reset-button').style.display = 'block';
+});
+
+document.querySelector('.reset-button').onclick = () => {
+  window.location.reload();
+};
+
 
 const messages = document.querySelector('.messages__container');
 socket.on('message', function(res) {

@@ -14,15 +14,17 @@ app.get('/', (req, res) => {
 
 const PLAYER_LIST = [];
 const ROOM_LIST = [];
+let lastId = 0;
 
 class Room {
   constructor() {
-    let id = 0;
-    for (let i = 0; i < ROOM_LIST.length; i++) {
-      id += 1;
-      if (ROOM_LIST[i].id !== id) break;
-    }
-    this.id = id;
+    // let id = 0;
+    // for (let i = 0; i < ROOM_LIST.length; i++) {
+    //   id += 1;
+    //   if (ROOM_LIST[i].id !== id) break;
+    // }
+    // this.id = id;
+    this.id = ++lastId;
     this.players = [];
     this.turn = null;
     this.board = [
@@ -46,12 +48,16 @@ class Room {
     this.changeTurn();
     this.players[0].socket.emit('message', 'Znaleziono przeciwnika! Jest nim ' + this.players[1].name + '.');
     this.players[1].socket.emit('message', 'Znaleziono przeciwnika! Jest nim ' + this.players[0].name + '.');
+    this.players[0].socket.emit('color', 'Twój kolor to czerwony.');
+    this.players[1].socket.emit('color', 'Twój kolor to zielony.');
     this.players[this.turn].socket.emit('message', 'Rozpoczynasz grę!');
     this.players[Math.abs(this.turn - 1)].socket.emit('message', 'Twój przeciwnik rozpoczyna grę!');
   }
   tick(id, x, y) {
     if (this.players.length > 0 && this.id >= 0) {
-      if (id === this.players[this.turn].id && this.board[y][x] === null) {
+      if (typeof this.players[this.turn] !== 'undefined'
+      && id === this.players[this.turn].id
+      && this.board[y][x] === null) {
         this.board[y][x] = this.turn.toString();
         this.turn === 0
         ? io.to(this.id).emit('draw', {type: 'x', cords: {x: x, y: y}})
@@ -76,8 +82,9 @@ class Room {
         this.turn = 1;
       }
       io.to(this.id).emit('status', 'Tura gracza ' + this.players[this.turn].name + '.');
-    } else {
+    } else if (this.checkWin() === false && emptyFields === false){
       io.to(this.id).emit('status', 'Remis!');
+      this.deleteRoom();
     }
   }
   deleteRoom() {
@@ -86,7 +93,7 @@ class Room {
         PLAYER_LIST[key].room = null;
       }
     });
-    const rIndex = ROOM_LIST.find(room => room.id === this.id);
+    const rIndex = ROOM_LIST.findIndex(room => room.id === this.id);
     ROOM_LIST.splice(rIndex, 1);
   }
   checkWin() {
@@ -129,8 +136,7 @@ class Player {
     if (typeof room !== 'undefined') {
       io.to(room.id).emit('status', 'Twój przeciwnik opuścił grę :(');
       io.to(room.id).emit('message', 'Przeciwnik opuścił pokój.');
-      const pIndexInRoom = room.players.findIndex(player => player.id === this.id);
-      room.players.splice(pIndexInRoom, 1);
+      io.to(room.id).emit('button', 'True.');
       room.deleteRoom();
     }
     const pIndex = PLAYER_LIST.findIndex(player => player.id === this.id);
@@ -146,8 +152,10 @@ io.on('connection', (socket) => {
 
   socket.on('tick', (res) => {
     const player = PLAYER_LIST.find(player => player.id === socket.id);
-    const room = ROOM_LIST.find(room => room.id === player.room);
-    if (typeof room !== 'undefined') room.tick(player.id, res.x, res.y);
+    if (typeof player !== 'undefined') {
+      const room = ROOM_LIST.find(room => room.id === player.room);
+      if (typeof room !== 'undefined') room.tick(player.id, res.x, res.y);
+    }
   });
 
   socket.on('disconnect', (res) => {

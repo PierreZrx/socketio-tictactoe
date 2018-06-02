@@ -16,7 +16,8 @@ body {
 }
 
 .newPlayer__input,
-.newPlayer__button {
+.newPlayer__button,
+.reset-button {
   font-family: 'Saira', sans-serif;
   font-size: 1.4em;
   padding: 10px;
@@ -46,6 +47,11 @@ body {
   justify-content: center;
   margin-top: 50vh;
   transform: translateY(-50%);
+}
+
+.reset-button {
+  display: none;
+  margin: 0 auto;
 }
 
 .messages__container {
@@ -95,6 +101,13 @@ body {
 .status__container {
   visibility: hidden;
   opacity: 0;
+  font-family: 'Saira', sans-serif;
+  font-size : 2em;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.current-color {
   font-family: 'Saira', sans-serif;
   font-size : 2em;
   text-align: center;
